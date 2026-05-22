@@ -20,6 +20,33 @@ from pathlib import Path
 BASE_DOCX = Path("/Users/nacho/Library/Mobile Documents/com~apple~CloudDocs/$MIS_COSAS/SECUNDARIA/Problemas")
 OUTPUT    = Path(__file__).parent / "index.html"
 
+# ─── Problemas añadidos manualmente ─────────────────────────────────────────
+# Añade aquí nuevos problemas sin necesidad de un .docx
+PROBLEMAS_EXTRA = [
+    {
+        "titulo": "Periodo y velocidad orbital de Marte",
+        "bloque": "Gravitación",
+        "nivel": "Medio",
+        "enunciado": (
+            "La Tierra orbita el Sol con $T_T = 1$ año y $r_T = 1$ UA. "
+            "Marte tiene $r_M = 1{,}524$ UA. Calcula: "
+            "(a) el periodo de Marte en años y en días, "
+            "(b) la velocidad orbital de Marte."
+        ),
+        "resolucion": (
+            "(a) 3ª ley de Kepler ($T^2/r^3 = \\mathrm{cte}$): "
+            "$T_M^2 = T_T^2 \\cdot (r_M/r_T)^3 = 1^2 \\times (1{,}524)^3 = 3{,}540$ "
+            "$\\Rightarrow T_M = \\sqrt{3{,}540} \\approx 1{,}881$ años $= 687$ días "
+            "(valor real: 686,97 días). | "
+            "(b) $r_M = 1{,}524 \\times 1{,}496\\times10^{11} = 2{,}280\\times10^{11}$ m; "
+            "$T_M = 687 \\times 86400 = 5{,}936\\times10^{7}$ s; "
+            "$v_M = 2\\pi r_M / T_M \\approx 24\\,130\\ \\mathrm{m/s} \\approx 24{,}1\\ \\mathrm{km/s}$. "
+            "Marte va más lento que la Tierra (29,8 km/s) por estar más lejos."
+        ),
+    },
+    # ── Añade más problemas aquí con el mismo formato ──
+]
+
 # ─── Extracción de problemas ──────────────────────────────────────────────────
 
 def limpiar(t):
@@ -159,6 +186,15 @@ def extraer_todos():
             print(f"  ✓ {fname}: {len(probs)} problemas")
         except Exception as e:
             print(f"  ✗ {fname}: {e}")
+    # Añadir problemas manuales
+    for p in PROBLEMAS_EXTRA:
+        extra = dict(p)
+        extra.setdefault("nivel", "Medio")
+        extra["area"] = get_area(extra.get("bloque", ""))
+        todos.append(extra)
+    if PROBLEMAS_EXTRA:
+        print(f"  ✓ problemas_extra (manual): {len(PROBLEMAS_EXTRA)} problemas")
+
     # Asignar IDs numéricos únicos
     for i, p in enumerate(todos):
         p["id"] = i
@@ -409,12 +445,14 @@ if __name__ == "__main__":
     problemas = extraer_todos()
     print(f"\n  → {len(problemas)} problemas extraídos en total")
 
-    # 3. Convertir a LaTeX
+    # 3. Convertir a LaTeX (solo los extraídos de docx, no los manuales)
+    ids_extra = {id(p) for p in PROBLEMAS_EXTRA}
     print("\n🔢 Convirtiendo notación a LaTeX...")
     for p in problemas:
-        p["enunciado"]  = latexify(p.get("enunciado",""),  sol=False)
-        p["resolucion"] = latexify(p.get("resolucion",""), sol=True)
-        # Limpiar campos que no necesita el HTML
+        if id(p) not in ids_extra:          # los manuales ya vienen en LaTeX
+            p["enunciado"]  = latexify(p.get("enunciado",""),  sol=False)
+            p["resolucion"] = latexify(p.get("resolucion",""), sol=True)
+        # Limpiar campos internos
         for k in ["id_str"]:
             p.pop(k, None)
 
